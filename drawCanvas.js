@@ -1137,7 +1137,7 @@ function _update_info_container() {
                                 "<i id='closeInfo' style='font-size:24px; float: right; color: rgb(223, 223, 223);' class='fa fa-window-close-o'>"+
                                 "</i>"+
                             "</a>"+
-                            "<center style='font-size: 24px'>"+ids[id_selected].replaceAll("%20", " ")+"</center>"+
+                            "<center style='font-size: 24px; padding-right: 30px;'>"+ids[id_selected].replaceAll("%20", " ")+"</center>"+
                             "</br>"+
                             "<table>"+
                                 "<tr>"+
