@@ -1422,6 +1422,18 @@ function _reset_canvas() { //useful for cleaning the canvas before switching mot
     fadeTarget.style.zIndex = "2";
 }
 
+function onScrollEvent(e) {
+    adjustZoom(-e.deltaY*SCROLL_SENSITIVITY);
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}
+
+function preventScrollPropagation(e) {
+    e.stopPropagation();
+    return false;
+}
+
 function init() {
     canvas = document.getElementById("canvas");
     offscreenContext = null;
@@ -1438,9 +1450,13 @@ function init() {
     canvas.addEventListener('touchend',  (e) => handleTouch(e, onPointerUp))
     canvas.addEventListener('mousemove', onPointerMove)
     canvas.addEventListener('touchmove', (e) => handleTouch(e, onPointerMove))
-    canvas.addEventListener( 'wheel', (e) => adjustZoom(-e.deltaY*SCROLL_SENSITIVITY))
+    canvas.addEventListener('wheel', onScrollEvent)
 
     window.addEventListener('resize', resize_window, true);
+
+    
+    sidebar_layers = document.getElementById("sidebar_layers");
+    sidebar_layers.addEventListener('wheel', preventScrollPropagation)
 
 }
 
