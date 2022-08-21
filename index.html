@@ -18,7 +18,7 @@
     </a>
     <div id="main_view" style="position: absolute; top: 0; left: 0%; overflow: hidden; width: 100%; height: 100%;">
         <div id="project_name"></div>
-        <div id="sidebar"  style="position: absolute; top: 0; left: 0; width: 200px; height: 100%; background: rgba(195, 195, 195, 0.5); z-index: 5;">
+        <div id="sidebar"  style="position: absolute; touch-action: manipulation; top: 0; left: 0; width: 200px; height: 100%; background: rgba(195, 195, 195, 0.5); z-index: 5;">
         <div id="sidebar_menu"  style="position: absolute; top: 0; left: 0%; overflow: none; width: 100%; height: 35px; background: rgba(63, 63, 63, 0.75); z-index: 6;">
             <a href="javascript:void(0);" class="icon" onclick="hideSidebar()">
                 <i id="hideSidebarIcon" style="font-size:24px; float: right; padding: 5px; color: black;" class="fa">&#xf0c9;
@@ -53,7 +53,7 @@
                 </i>
             </a>
         </div>
-        <div id="sidebar_layers" style="position: absolute; top: 35px;; left: 0%; overflow-y: auto; overflow-x: hidden; width: 100%; height: calc(100% - 35px); background: rgba(127, 127, 127, 0.5); z-index: 5;"></div>
+        <div id="sidebar_layers" style="position: absolute; top: 35px; left: 0%; overflow-y: auto; overflow-x: hidden; direction: rtl; scrollbar-width: thin; width: 100%; height: calc(100% - 35px); background: rgba(127, 127, 127, 0.5); z-index: 5;"></div>
         </div>
         <div id="loader" z-index=2 style="position: absolute;">
         <progress id='p' value='0' max='100'></progress>

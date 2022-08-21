@@ -88,6 +88,7 @@ html, body
 
 .layer_element
 {
+  direction: ltr;
   position: relative;
   box-sizing: border-box;
   margin: 2.5%;
@@ -165,10 +166,26 @@ html, body
   color: hotpink;
 }
 
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(192, 192, 192, 1);
+  border-radius: 5px;
+  border: transparent;
+}
+
 #info_div {
-  width: fit-content;
-  block-size: fit-content;
   white-space: nowrap;
+
+  max-height: calc(100vh - 35px);
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
 
   top: 100%;
   left: 40%;

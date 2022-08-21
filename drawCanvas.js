@@ -15,6 +15,8 @@ let SCROLL_SENSITIVITY = 0.0005
 
 const _PRG = document.getElementById('p'), _OUT = document.querySelector('[for=p]'), K = 5, TMAX = K*_PRG.max;
 
+let double_tap_time = null;
+
 let start_time_image_load = 0
 
 let loading_progress = 0
@@ -46,6 +48,31 @@ let layer_info_loaded = 0
 let layer_opacity_loaded = 0
 
 let datapath = null
+
+let mobile = null;
+
+function detectMob() {
+    const toMatch = [
+        /Android/i,
+        /webOS/i,
+        /iPhone/i,
+        /iPad/i,
+        /iPod/i,
+        /BlackBerry/i,
+        /Windows Phone/i
+    ];
+    
+    return toMatch.some((toMatchItem) => {
+        return navigator.userAgent.match(toMatchItem);
+    });
+}
+
+function is_mobile(){
+    if (mobile == null) {
+        mobile = detectMob();
+    }
+    return mobile;
+}
 
 function formatTime(unix_timestamp) {
     let date = new Date(unix_timestamp);
@@ -947,6 +974,36 @@ function _get_clicked_layer(x, y) {
     return layer;
 }
 
+function _single_click(x, y) {
+    if (x >= 0 && y>=0 && x < layerSize.x && y < layerSize.y) {
+        let id = _get_clicked_layer(x, y);
+        if (selected_layer != id) {
+            js = layer_info[id]
+            if (id != -1) {
+                console.log("switch layer to "+id)
+                console.log("Layer Name: "+js.name)
+            }
+            old_l = selected_layer;
+            selected_layer = id;
+            deselectLayerSide(old_l);
+            selectLayerSide(id);
+        }
+    }else if (selected_layer != -1) {
+        deselectLayerSide(selected_layer);
+        selected_layer = -1;
+    }
+}
+
+function _double_click(x, y){
+    if (x >= 0 && y>=0 && x < layerSize.x && y < layerSize.y) {
+        let id = _get_clicked_layer(x, y);
+        _focus_on_layer(id);
+    } else {
+        _focus_on_layer(-1);
+    }
+
+}
+
 function onPointerUp(e)
 {
     isDragging = false
@@ -957,25 +1014,26 @@ function onPointerUp(e)
             let click_coords = _get_canvas_click_location(e);
             let x = click_coords.x;
             let y = click_coords.y;
-            if (x >= 0 && y>=0 && x < layerSize.x && y < layerSize.y) {
-                let id = _get_clicked_layer(x, y);
-                if (selected_layer != id) {
-                    js = layer_info[id]
-                    if (id != -1) {
-                        console.log("switch layer to "+id)
-                        console.log("Layer Name: "+js.name)
+            if (is_mobile()){
+                if (double_tap_time != null) {
+                    if (performance.now() - double_tap_time < 500) {
+                        _double_click(x, y);
+                    } else {
+                        _single_click(x, y);
                     }
-                    old_l = selected_layer;
-                    selected_layer = id;
-                    deselectLayerSide(old_l);
-                    selectLayerSide(id);
+                    double_tap_time = null;
+                } else {
+                    double_tap_time = performance.now();
+                    double_tap_time_copy = double_tap_time;
+                    setTimeout(function() {
+                        if (double_tap_time == double_tap_time_copy) {
+                            double_tap_time = null;
+                            _single_click(x, y);
+                        }
+                    }, 500);
                 }
             } else {
-                console.log("Click outsite image..")
-                if (selected_layer != -1) {
-                    deselectLayerSide(selected_layer);
-                    selected_layer = -1;
-                }
+                _single_click(x, y);
             }
         }
     }
