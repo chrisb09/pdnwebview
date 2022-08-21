@@ -1,4 +1,4 @@
-# Show [paint.net](getpaint.net) projects in a browser.
+# Show [paint.net](https://getpaint.net/) projects in a browser.
 
 This project renders the output of [pdnexport](https://gitlab.com/christianbrinkmann/pdnexport) python script in a browser.
 
