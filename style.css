@@ -221,6 +221,24 @@ html, body
   z-index: 6;
 }
 
+#toggleFullscreen .tooltiptext {
+  width: 180px;
+  top: 100%;
+  right: 0%;
+  /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
+    
+  visibility: hidden;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 6;
+}
+
 #hideSidebarIcon .tooltiptext {
   width: 150px;
   top: 100%;
@@ -311,6 +329,11 @@ html, body
   /* Position the tooltip */
   position: absolute;
   z-index: 6;
+}
+
+#toggleFullscreen:hover .tooltiptext {
+  transition-delay: 1s;
+  visibility: visible;
 }
 
 #showInfoIcon:hover .tooltiptext {

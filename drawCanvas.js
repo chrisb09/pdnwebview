@@ -419,6 +419,19 @@ function refreshSite() {
     console.log("Reset to default.")
 }
 
+function is_fullscreen(){
+    return document.fullscreenElement != null;
+}
+
+function toggleFullscreen() {
+    console.log(is_fullscreen())
+    if (is_fullscreen()) {
+        document.exitFullscreen();
+    } else {
+        document.body.requestFullscreen();
+    }
+}
+
 function hideSidebar() {
 
     let moveTarget = document.getElementById("sidebar");
