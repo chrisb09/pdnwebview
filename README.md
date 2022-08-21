@@ -28,5 +28,5 @@ A screenshot might be nice, but there's nothing better than just trying it out y
 It is possible to embed the webview into another website like this:
 ```
 <iframe id="pdnview" src="https://christian-f-brinkmann.de/paint/?id=Zaubertrank%20logo&id=testimage" title="Paint.net projects"
-		style='width: 1280px; height: 720px; overscroll-behavior: contain ;' allowfullscreen></iframe> 
+		style='width: 1280px; height: 720px; border: none; overscroll-behavior: contain ;' allowfullscreen></iframe> 
 ```
