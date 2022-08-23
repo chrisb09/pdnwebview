@@ -949,8 +949,8 @@ function onPointerDown(e)
     //dragStart.y = getEventLocation(e).y/cameraZoom - cameraOffset.y
     dragStart.x = getEventLocation(e).x - cameraOffset.x
     dragStart.y = getEventLocation(e).y - cameraOffset.y
-    console.log("X: "+dragStart.x)
-    console.log("Y: "+dragStart.y)
+    //console.log("X: "+dragStart.x)
+    //console.log("Y: "+dragStart.y)
     if (completely_loaded) {
         pointer_moved = false
     }
@@ -1029,10 +1029,9 @@ function onPointerUp(e)
             let y = click_coords.y;
             if (is_mobile()){
                 if (double_tap_time != null) {
+                    _single_click(x, y);
                     if (performance.now() - double_tap_time < 500) {
                         _double_click(x, y);
-                    } else {
-                        _single_click(x, y);
                     }
                     double_tap_time = null;
                 } else {
