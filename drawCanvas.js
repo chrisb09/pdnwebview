@@ -1,4 +1,6 @@
-let use_webgl = true
+let use_webgl = true;
+
+let canvas_worker = null;
 
 let ctx = null;
 let canvas = null;
@@ -324,7 +326,7 @@ function _add_layers_to_side() {
                 //console.log(i+": "+layer_info[i].visible)
             }
             redo_cache = true;
-            requestAnimationFrame( draw );
+            canvas_worker.postMessage({id: "render"});
           })
 
         checkbox_div.appendChild(checkbox);
@@ -408,8 +410,7 @@ function refreshSite() {
     deselectLayerSide(selected_layer);
     selected_layer = -1
     //redraw
-    redo_cache = true;
-    requestAnimationFrame( draw );
+    canvas_worker.postMessage({id: "render"});
     //reset zoom
     cameraZoom = 0.85*Math.min(window.innerWidth / layerSize.x, window.innerHeight / layerSize.y)
     //reset cameraOffset
@@ -536,11 +537,14 @@ function load_image(path, id)
     
     let img = new Image();   // Create new img element
     img.addEventListener('load', function() {
-        layers[id] = img;
+        ////layers[id] = img;
+
         //layerSize.x = img.width;
         //layerSize.y = img.height;
-        layers_loaded += 1;
-        fully_loaded();
+        //layers_loaded += 1;
+        //fully_loaded();
+        console.log("Send layer "+id);
+        //canvas_worker.postMessage({id: "load_image", i: id, image: URL.createObjectURL(img)});
     }, false);
     img.src = path + "/" + id + ".png"; // Set source path
     
@@ -554,13 +558,14 @@ function load_image(path, id)
     img2.src = path + "/" + id + "_r.png";
     */
     
+    /*
     let img3 = new Image();
     img3.addEventListener('load', function() {
         layer_border[id] = img3;
         layer_border_loaded += 1;
         fully_loaded();
     }, false);
-    img3.src = path + "/" + id + "_b.png";
+    img3.src = path + "/" + id + "_b.png";*/
     
     /*
     let img4 = new Image();
@@ -593,12 +598,12 @@ function load_image(path, id)
 
 function fully_loaded() {
     //loading_progress = parseInt( (layers_loaded + layer_click_loaded + layer_border_loaded + layer_area_loaded + layer_opacity_loaded) * 100 / (5 * complete_layer_amount) ) ;
-    loading_progress = parseInt( (layers_loaded + layer_border_loaded + layer_opacity_loaded) * 100 / (3 * complete_layer_amount) ) ;
+    loading_progress = parseInt( (layers_loaded + layer_opacity_loaded) * 100 / (2 * complete_layer_amount) ) ;
     console.log(loading_progress);
     _OUT.value = parseInt(loading_progress)
     _PRG.value = loading_progress
-    if (complete_layer_amount <= layers_loaded &&
-        complete_layer_amount <= layer_border_loaded &&
+    if (complete_layer_amount <= layers_loaded &&/*
+        complete_layer_amount <= layer_border_loaded &&*/
         complete_layer_amount <= layer_opacity_loaded) {
     //if (complete_layer_amount <= layers_loaded && complete_layer_amount <= layer_click_loaded && complete_layer_amount <= layer_border_loaded && complete_layer_amount <= layer_area_loaded) {
      _fully_loaded()   
@@ -635,7 +640,8 @@ function _fully_loaded() {
     _fade_out("loader", 1, 1);
     redo_cache = true
     redo_canvas = true
-    requestAnimationFrame( draw );
+    //requestAnimationFrame( draw );
+    canvas_worker.postMessage({id: "render"});
     _display_title();
 }
 
@@ -653,6 +659,7 @@ function load_images(path)
         load_status(path).then(function(amount_of_layers) {
             console.log(""+amount_of_layers+" Layer");
             layer_amount = parseInt(amount_of_layers);
+            complete_layer_amount = layer_amount;
             console.log("Load json descriptors...")
             json_promises = [];
             var start_time_json_load = performance.now()
@@ -660,6 +667,7 @@ function load_images(path)
                 json_promises.push(load_image_json(path, i));
             }
             Promise.all(json_promises).then(function() {
+                create_webworker();
                 _update_info_container();
                 layer_visibility_copy = {};
                 for (let i=0; i < layer_amount; i++) {
@@ -673,7 +681,12 @@ function load_images(path)
                 }
                 
                 console.log("Json loaded. Load images...")
-                complete_layer_amount = layer_amount
+                canvas_worker.postMessage({ id: "load",
+                                            datapath: path,
+                                            layer_amount : layer_amount,
+                                            layer_info: layer_info,
+                                            layer_size: layerSize}
+                );
                 for (let i = 0; i < layer_amount; i++) {
                     load_image(path, i);
                 }
@@ -826,7 +839,7 @@ function _draw(DOMHighResTimeStamp){
 function draw(DOMHighResTimeStamp)
 {
 
-    //console.log("Draw call")
+    console.log("Draw call")
 
     if (!draw_in_progress) {
         draw_in_progress = true
@@ -1023,7 +1036,7 @@ function onPointerUp(e)
     initialPinchDistance = null
     lastZoom = cameraZoom
     if (pointer_moved == false) {
-        if (completely_loaded && layers[0] !== 'undefined') {
+        if (completely_loaded) {
             let click_coords = _get_canvas_click_location(e);
             let x = click_coords.x;
             let y = click_coords.y;
@@ -1128,7 +1141,7 @@ function adjustZoom(zoomAmount, zoomFactor)
 
             _update_zoom()
             
-            requestAnimationFrame( draw );
+            //requestAnimationFrame( draw );
         }
         
         //console.log(zoomAmount)
@@ -1423,6 +1436,7 @@ function _reset_canvas() { //useful for cleaning the canvas before switching mot
         console.log(offscreenContext)
         console.log(offscreenContext == null)
     }*/
+    completely_loaded = false;
     layers_loaded = 0;
     layer_border_loaded = 0;
     layer_opacity_loaded = 0;
@@ -1445,6 +1459,39 @@ function onScrollEvent(e) {
 function preventScrollPropagation(e) {
     e.stopPropagation();
     return false;
+}
+
+function create_webworker(){
+    canvas_worker = new Worker("canvasWorker.js");
+    canvas_worker.addEventListener("message", function handleMessageFromWorker(msg) {
+        data = msg.data;
+        if (data["id"] == "okay") {
+            console.log("canvas_worker started successfully.")
+        }else if (data["id"] == "render_progress"){
+            console.log("Render progress: "+data["value"]);
+        }else if (data["id"] == "loading_progress"){
+            console.log("Loading progress: "+data["value"]);
+            layers_loaded = Math.max(layers_loaded, data["value"]);
+            fully_loaded();
+        }else if (data["id"] == "render_result"){
+            let buffer = data["buffer"];
+            let array = new Uint8Array(buffer);
+            let imagedata = { data: array, width: data["width"], height: data["height"], resolution: 1 };
+            console.log("Render results: ");
+            console.log(imagedata);
+            if (offscreenContext != null) {
+                if (use_webgl) {
+                    offscreenContext.start2D();
+                }
+                offscreenContext.putImageData(imagedata, 0, 0);
+                if (use_webgl) {
+                    offscreenContext.finish2D();
+                }
+            }
+        }
+        //console.log("message from worker received in main:", msg);
+    });
+    canvas_worker.postMessage({id: "test"});
 }
 
 function init() {
