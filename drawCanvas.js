@@ -415,7 +415,6 @@ function refreshSite() {
     //reset cameraOffset
     cameraOffset = { x: window.innerWidth/2, y: window.innerHeight/2 }
     _update_zoom()
-    _update_zoom()
     console.log("Reset to default.")
 }
 
@@ -1085,8 +1084,9 @@ function handleTouch(e, singleTouchHandler)
     }
 }
 
-let initialPinchDistance = null
-let lastZoom = cameraZoom
+let initialPinchDistance = null;
+let initialTouchPosition = null;
+let lastZoom = cameraZoom;
 
 function handlePinch(e)
 {
@@ -1101,14 +1101,15 @@ function handlePinch(e)
     if (initialPinchDistance == null)
     {
         initialPinchDistance = currentDistance
+        initialTouchPosition = {x: (touch1.x + touch2.x) / 2, y: (touch1.y + touch2.y) / 2}
     }
     else
     {
-        adjustZoom( null, currentDistance/initialPinchDistance )
+        adjustZoom( null, currentDistance/initialPinchDistance, mouse_position=initialTouchPosition )
     }
 }
 
-function adjustZoom(zoomAmount, zoomFactor)
+function adjustZoom(zoomAmount, zoomFactor, mouse_position=null)
 {
     if (!isDragging)
     {
@@ -1125,9 +1126,9 @@ function adjustZoom(zoomAmount, zoomFactor)
         cameraZoom = Math.max( cameraZoom, MIN_ZOOM )
         if (completely_loaded) {
 
-            _update_zoom()
+            _update_zoom(offset_camera=true, mouse_position=mouse_position)
             
-            requestAnimationFrame( draw );
+            //requestAnimationFrame( draw );
         }
         
         //console.log(zoomAmount)
@@ -1146,7 +1147,7 @@ function _update_position(){
     moving_canvas_container.style.left = (cameraOffset.x - parseInt(moving_canvas_container.style.width)/2)+"px";
 }
 
-function _update_zoom(offset_camera=true){
+function _update_zoom(offset_camera=true, mouse_position=null){
     let moving_canvas_container = document.getElementById('moving_canvas_container');
 
     //cameraOffsetMin = { x: -layerSize.x *MIN_ZOOM * 0.5, y: -layerSize.y * MIN_ZOOM * 0.5 }
@@ -1161,8 +1162,9 @@ function _update_zoom(offset_camera=true){
     moving_canvas_container.style.height = (cameraZoom * layerSize.y)+"px";
     if (!isNaN(previous_width) && !isNaN(previous_height)) {
         if (offset_camera) {
-            cameraOffset.x -= ( (canvas.width*0.5 - cameraOffset.x) / (previous_width * 0.5)) * 0.5 * (parseInt(moving_canvas_container.style.width) - previous_width);
-            cameraOffset.y -= ( (canvas.height*0.5 - cameraOffset.y) / (previous_height * 0.5)) * 0.5 * (parseInt(moving_canvas_container.style.height) - previous_height);
+            mouse_position = mouse_position || {x: canvas.width*0.5, y: canvas.width*0.5}
+            cameraOffset.x -= ( (mouse_position.x - cameraOffset.x) / (previous_width * 0.5)) * 0.5 * (parseInt(moving_canvas_container.style.width) - previous_width);
+            cameraOffset.y -= ( (mouse_position.y - cameraOffset.y) / (previous_height * 0.5)) * 0.5 * (parseInt(moving_canvas_container.style.height) - previous_height);
             //cameraOffset.x = Math.min(cameraOffsetMax.x, Math.max(cameraOffsetMin.x, cameraOffset.x));
             //cameraOffset.y = Math.min(cameraOffsetMax.y, Math.max(cameraOffsetMin.y, cameraOffset.y));
         }
@@ -1435,7 +1437,8 @@ function _reset_canvas() { //useful for cleaning the canvas before switching mot
 }
 
 function onScrollEvent(e) {
-    adjustZoom(-e.deltaY*SCROLL_SENSITIVITY);
+    mp = {x: e.layerX, y: e.layerY}
+    adjustZoom(-e.deltaY*SCROLL_SENSITIVITY, null, mouse_position=mp);
     e.preventDefault();
     e.stopPropagation();
     return false;
