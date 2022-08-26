@@ -60,9 +60,10 @@
         </div>
         <div id="sidebar_layers" style="position: absolute; top: 35px; left: 0%; overflow-y: auto; overflow-x: hidden; direction: rtl; scrollbar-width: thin; width: 100%; height: calc(100% - 35px); background: rgba(127, 127, 127, 0.5); z-index: 5;"></div>
         </div>
-        <div id="loader" z-index=2 style="position: absolute;">
-        <progress id='p' value='0' max='100'></progress>
-        <output for='p'></output>
+        <div id="loader" z-index=2 style="position: absolute; visibility: hidden;">
+            <span id="loading_text" style="position: absolute; top: -50px;">Loading</span>
+            <progress id='p' value='0' max='100'></progress>
+            <output for='p'></output>
         </div>
         <div id="canvas_container" z-index=1>
             <canvas id="canvas" width="100%" height="100%" style="touch-action:manipulation;"></canvas>

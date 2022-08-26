@@ -10,8 +10,15 @@
   top: 50%;  /* position the top  edge of the element at the middle of the parent */
   left: 50%; /* position the left edge of the element at the middle of the parent */
 
+  border: 2px solid black;
+  border-radius: 25px;
+
+  text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
+
   transform: translate(-50%, -50%);
 }
+
+
 progress[value] {
   width: 12.5em;
   height: 0.25em;
@@ -44,4 +51,9 @@ output:not(:empty) {
 }
 output:not(:empty):after {
   content: '%';
+}
+
+output {
+  top: 120%;
+  position: absolute;
 }

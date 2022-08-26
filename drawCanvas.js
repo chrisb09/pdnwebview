@@ -13,6 +13,8 @@ let MAX_ZOOM = 2
 let MIN_ZOOM = 0.2
 let SCROLL_SENSITIVITY = 0.0005
 
+let timed_effects = {};
+
 const _PRG = document.getElementById('p'), _OUT = document.querySelector('[for=p]'), K = 5, TMAX = K*_PRG.max;
 
 let double_tap_time = null;
@@ -23,6 +25,8 @@ let loading_progress = 0
 let complete_layer_amount = -1
 let completely_loaded = false
 
+let layer_redraw_progress = -1;
+let current_rendering_run_start = null;
 let redo_cache = false
 let redo_canvas = false
 let schedule_draw = false
@@ -299,8 +303,6 @@ function _add_layers_to_side() {
                 deselectLayerSide(selected_layer);
                 selectLayerSide(id);
                 selected_layer = id;
-                //redo_cache = true;
-                //requestAnimationFrame( draw )
             }
         });
         sidebar.appendChild(div_layer);
@@ -414,7 +416,7 @@ function refreshSite() {
     cameraZoom = 0.85*Math.min(window.innerWidth / layerSize.x, window.innerHeight / layerSize.y)
     //reset cameraOffset
     cameraOffset = { x: window.innerWidth/2, y: window.innerHeight/2 }
-    _update_zoom()
+    _update_zoom(offset_camera=false, null)
     console.log("Reset to default.")
 }
 
@@ -486,13 +488,37 @@ function _display_title() {
     let title = ids[id_selected].replaceAll("%20", " ");
     let project_name = document.getElementById("project_name");
     project_name.innerHTML = title;
+    project_name.style.opacity = 1; 
     _fade_out("project_name", fade_time=1, delay=5);
+}
+
+function _stop_effect(key, clear_function){
+    if (key in timed_effects){
+        console.log("Stop "+key);
+        clear_function(timed_effects[key]);
+        delete timed_effects[key];
+    }
+}
+
+function _clear_all_effects(){
+    for (k in Object.keys(timed_effects)){
+        if (k.endsWith("_timeout")) {
+            _stop_effect(k, clearTimeout);
+        }else if (k.endsWith("_interval")){
+            _stop_effect(k, clearInterval);
+        }
+    }
 }
 
 function _fade_out(target_div_name, fade_time=1.0, delay=0) {
     let fadeTarget = document.getElementById(target_div_name);
     fadeTarget.style.visibility = "visible";
+    let timeout_key = target_div_name+"_timeout";
+    let interval_key = target_div_name+"_interval";
+    _stop_effect(timeout_key, clearTimeout);
+    _stop_effect(interval_key, clearInterval);
     setTimeout( function() {
+        delete timed_effects[timeout_key];
         let fadeEffect = setInterval(function () {
             if (!fadeTarget.style.opacity) {
                 fadeTarget.style.opacity = 1;
@@ -501,8 +527,9 @@ function _fade_out(target_div_name, fade_time=1.0, delay=0) {
                 fadeTarget.style.opacity -= 10/(fade_time*1000);
             } else {
                 console.log("Element hidden")
-                fadeTarget.style.opacity = 1;
+                fadeTarget.style.opacity = 0;
                 fadeTarget.style.visibility = "hidden";
+                delete timed_effects[interval_key];
                 clearInterval(fadeEffect);
             }
         }, 10);
@@ -593,9 +620,10 @@ function load_image(path, id)
 function fully_loaded() {
     //loading_progress = parseInt( (layers_loaded + layer_click_loaded + layer_border_loaded + layer_area_loaded + layer_opacity_loaded) * 100 / (5 * complete_layer_amount) ) ;
     loading_progress = parseInt( (layers_loaded + layer_border_loaded + layer_opacity_loaded) * 100 / (3 * complete_layer_amount) ) ;
-    console.log(loading_progress);
-    _OUT.value = parseInt(loading_progress)
-    _PRG.value = loading_progress
+    _OUT.value = parseInt(loading_progress);
+    _PRG.value = loading_progress;
+    let fadeTarget = document.getElementById("loader");
+    fadeTarget.style.visibility = "visible";
     if (complete_layer_amount <= layers_loaded &&
         complete_layer_amount <= layer_border_loaded &&
         complete_layer_amount <= layer_opacity_loaded) {
@@ -625,13 +653,13 @@ function _fully_loaded() {
     MIN_ZOOM = cameraZoom * 0.5
     MAX_ZOOM = cameraZoom * 5
     cameraZoom *= 0.85
-    _update_zoom();
+    _update_zoom(offset_camera=false, null);
     _update_position();
     
     completely_loaded = true
     redo_cache = true
     redraw_layer = true
-    _fade_out("loader", 1, 1);
+    //_fade_out("loader", 1, 1);
     redo_cache = true
     redo_canvas = true
     requestAnimationFrame( draw );
@@ -713,7 +741,7 @@ function _draw_layer(index, context){
             }*/
             
             context.globalAlpha = js.opacity / 255;
-            blendMode = js.blendMode;
+            /*blendMode = js.blendMode;
             switch(blendMode) {
                 case "0": context.globalCompositeOperation = "source-over"; break; //Normal
                 case "1": context.globalCompositeOperation = "multiply"; break; //Multiply
@@ -729,8 +757,8 @@ function _draw_layer(index, context){
                 case "11": context.globalCompositeOperation = "darken"; break; //Darken
                 case "12": context.globalCompositeOperation = "screen"; break; //Screen
                 case "13": context.globalCompositeOperation = "exclusion"; break; //XOR !SOMEWHAT WRONG!
-            }
-            console.log("Draw") 
+            }*/
+            //console.log("Draw") 
             context.drawImage(layers[index], 0, 0);
         } else {
             //console.log("Not visible")
@@ -738,7 +766,7 @@ function _draw_layer(index, context){
     }
 }
 
-function draw_layer()
+function draw_layer(clear_canvas=false)
 {
     if (typeof canvas !== 'undefined') {
         if (typeof canvas.offscreenCanvas === 'undefined' || canvas.offscreenCanvas == null) {
@@ -776,7 +804,8 @@ function draw_layer()
         
         if (use_webgl) {
             if (offscreenContext == null) {
-                offscreenContext = enableWebGLCanvas( canvas.offscreenCanvas );
+                offscreenContext = enableWebGLCanvas( canvas.offscreenCanvas, 
+                    {preserveDrawingBuffer: true} );
                 console.log("IMAGE_DATA");
                 console.log(offscreenContext.getImageData(0, 0, canvas.offscreenCanvas.width, canvas.offscreenCanvas.height));
             }
@@ -790,7 +819,9 @@ function draw_layer()
         }
 
         //Clear canvas
-        context.clearRect(0, 0, canvas.offscreenCanvas.width, canvas.offscreenCanvas.height);
+        if (clear_canvas) {
+            context.clearRect(0, 0, canvas.offscreenCanvas.width, canvas.offscreenCanvas.height);
+        }
         
         if (use_webgl) {
             //click_context.start2D();
@@ -798,9 +829,15 @@ function draw_layer()
             context.start2D();
         }
 
-        for (let i = 0; i < layer_amount; i++) {
-            //_draw_layer(i, click_context, area_context, context)
+        let start_time = performance.now();
+        for (let i = layer_redraw_progress; i < layer_amount; i++) {
             _draw_layer(i, context);
+            now = performance.now();
+            if (now - start_time > 15 || layer_amount - 1 == i) {
+                //console.log(`Drew `+(i+1-layer_redraw_progress)+` Layer in: ${now - start_time} ms`);
+                layer_redraw_progress = i+1;
+                break;
+            }
         }
 
         //console.log(canvas.offscreenCanvas.toDataURL());
@@ -827,100 +864,34 @@ function draw(DOMHighResTimeStamp)
 
     //console.log("Draw call")
 
-    if (!draw_in_progress) {
-        draw_in_progress = true
-        
-        if (redo_cache) {
-            redo_canvas = true
-            redo_cache = false
-            console.log("Draw Layer Cache")
-            start_time_draw_layer = performance.now()
-            draw_layer()
-            end_time_draw_layer = performance.now()
-            console.log(`Draw-Layer: ${end_time_draw_layer - start_time_draw_layer} ms`)
-        }
-        
-        if (redo_canvas) {
-            /*console.log(DOMHighResTimeStamp);
-            console.log("redraw layer");
-            
-            start_time_draw = performance.now()
-            
-            canvas.width = window.innerWidth
-            canvas.height = window.innerHeight*/
-
-            /*if (use_webgl) {
-                ctx.start2D();
-            }
-            
-            // Translate to the canvas centre before zooming - so you'll always zoom on what you're looking directly at
-            if (use_webgl) {
-                ctx.translate( window.innerWidth / 2, window.innerHeight / 2 )
-                if (previousZoom != cameraZoom) {
-                    let zoomFactor = cameraZoom / previousZoom
-                    console.log("Change zoom by factor "+zoomFactor);
-                    ctx.scale(zoomFactor, zoomFactor);
-                    previousZoom = cameraZoom
-                }
-                ctx.translate( -window.innerWidth / 2, -window.innerHeight / 2)
-                ctx.translate(cameraOffset.x-previousCameraOffset.x, cameraOffset.y-previousCameraOffset.y )
-                previousCameraOffset.x = cameraOffset.x;
-                previousCameraOffset.y = cameraOffset.y;
-                //ctx.translate( -window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y )
-            }else{
-                ctx.translate( window.innerWidth / 2, window.innerHeight / 2 )
-                ctx.scale(cameraZoom, cameraZoom)
-            }
-            ctx.clearRect(0,0, window.innerWidth, window.innerHeight)
-            
-            
-            //layers.forEach(draw_layer)
-            if (typeof canvas.offscreenCanvas !== 'undefined') {
-                if (use_webgl) {
-                    ctx.drawImage(canvas.offscreenCanvas, -canvas.offscreenCanvas.width/2, -canvas.offscreenCanvas.height/2);
-                    //offscreenContext.start2D();
-                    //console.log("C")
-                    //let d = offscreenContext.getImageData(0, 0, canvas.offscreenCanvas.width, canvas.offscreenCanvas.height);
-                    //console.log(d);
-                    //ctx.putImageData(d, 1000, 10000);
-                    //offscreenContext.finish2D();
-                }else{
-                    ctx.drawImage(canvas.offscreenCanvas, -canvas.offscreenCanvas.width/2, -canvas.offscreenCanvas.height/2);
-                }
-
-
-                //console.log(canvas.offscreenCanvas.toDataURL())
-                //if (selected_layer>=0 && selected_layer < layers.length) {
-                    //context = canvas.offscreenCanvas.getContext('2d')
-                //    console.log("Draw selection "+selected_layer)
-                //    ctx.globalAlpha = 1.0;
-                //    ctx.globalCompositeOperation = "source-over";
-                //    ctx.drawImage(layer_border[selected_layer], -canvas.offscreenCanvas.width/2, -canvas.offscreenCanvas.height/2);
-                //}
-                
-                end_time_draw = performance.now()
-                console.log(`Draw-Cache on Canvas: ${end_time_draw - start_time_draw} ms`)
-                
-            } else {
-                console.log("offscreen canvas undefined???")
-                schedule_draw = true
-            }
-            
-            if (use_webgl) {
-                ctx.finish2D();
-            }*/
-        }
-
-        draw_in_progress = false
-
-        if (schedule_draw) {
-            schedule_draw = false
-            requestAnimationFrame( draw );
-        }
-    } else {
-        console.log("Schedule redraw")
-        schedule_draw = true
+    if (redo_cache) {
+        layer_redraw_progress = 0
+        current_rendering_run_start = performance.now();
+        redo_cache = false;
     }
+    
+    if (layer_redraw_progress < layer_amount) {
+        draw_layer(layer_redraw_progress == 0);
+    }
+
+    
+    if (layer_redraw_progress < layer_amount) {
+        document.getElementById("loading_text").innerHTML = "Rendering";
+        rendering_progress = layer_redraw_progress * 100 / layer_amount;
+        _OUT.value = parseInt(rendering_progress);
+        _PRG.value = rendering_progress;
+        let fadeTarget = document.getElementById("loader");
+        fadeTarget.style.opacity = Math.min(1, (performance.now() - current_rendering_run_start)/1000);
+        requestAnimationFrame( draw );
+    } else {
+        console.log("hide loader...");
+        rendering_progress = 100;
+        _OUT.value = parseInt(rendering_progress);
+        _PRG.value = rendering_progress;
+        _fade_out("loader", 1, 1);
+    }
+    
+
 }
 
 
@@ -1431,9 +1402,12 @@ function _reset_canvas() { //useful for cleaning the canvas before switching mot
     deselectLayerSide(selected_layer);
     selected_layer = -1;
     
+    _clear_all_effects();
+
     let fadeTarget = document.getElementById("loader");
     fadeTarget.style.opacity = 1;
     fadeTarget.style.zIndex = "2";
+    document.getElementById("loading_text").innerHTML = "Loading";
 }
 
 function onScrollEvent(e) {
