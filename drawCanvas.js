@@ -1177,10 +1177,10 @@ function showInfo() {
 function _update_info_container() {
     let info_div = document.getElementById("info_div");
     info_div.innerHTML =    "<a href='javascript:void(0);' class='icon' style='z-index=7' onclick='showInfo()'>"+
-                                "<i id='closeInfo' style='font-size:24px; float: right; color: rgb(223, 223, 223);' class='fa fa-window-close-o'>"+
+                                "<i id='closeInfo' style='font-size:40px; padding: 5px; float: right; color: rgb(223, 223, 223);' class='fa fa-window-close-o'>"+
                                 "</i>"+
                             "</a>"+
-                            "<center style='font-size: 24px; padding-right: 30px;'>"+ids[id_selected].replaceAll("%20", " ")+"</center>"+
+                            "<center style='font-size: 40px; padding-right: 50px;'>"+ids[id_selected].replaceAll("%20", " ")+"</center>"+
                             "</br>"+
                             "<table>"+
                                 "<tr>"+

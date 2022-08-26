@@ -113,6 +113,15 @@ html, body
   background-image: url("res/transparency_texture.png");
 }
 
+
+#Queue
+{
+  float: left;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: middle;
+}
+
 .checkbox_div
 {
   position: absolute;
@@ -144,7 +153,7 @@ html, body
   width: fit-content;
   block-size: fit-content;
   white-space: nowrap;
-  font-size: 36px;
+  font-size: 44px;
   
   position: absolute;
   top: 50px;
@@ -182,7 +191,9 @@ html, body
 #info_div {
   white-space: nowrap;
 
-  max-height: calc(100vh - 35px);
+  font-size: 20px;
+
+  max-height: calc(100vh - 50px);
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -196,8 +207,9 @@ html, body
   background-color: rgb(63, 63, 63);
   color: rgb(223, 223, 223);
   text-align: left;
-  border-radius: 6px;
-  padding: 5px;
+  border-radius: 10px;
+  padding: 8px;
+  border: 2px solid black;
 
   /* Position the tooltip */
   position: absolute;
@@ -205,11 +217,12 @@ html, body
 }
 
 #refreshSiteIcon .tooltiptext {
-  width: 100px;
+  width: 140px;
   top: 100%;
   left: 50%;
   /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
     
+  white-space: normal;
   visibility: hidden;
   background-color: black;
   color: #fff;
@@ -228,6 +241,7 @@ html, body
   right: 0%;
   /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
     
+  white-space: normal;
   visibility: hidden;
   background-color: black;
   color: #fff;
@@ -246,6 +260,7 @@ html, body
   left: 50%;
   /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
     
+  white-space: normal;
   visibility: hidden;
   background-color: black;
   color: #fff;
@@ -265,6 +280,7 @@ html, body
   left: 50%;
   /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
     
+  white-space: normal;
   visibility: hidden;
   background-color: black;
   color: #fff;
@@ -278,11 +294,12 @@ html, body
 }
 
 #nextID .tooltiptext {
-  width: 70px;
+  width: 90px;
   top: 100%;
   left: 25%;
   /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
     
+  white-space: normal;
   visibility: hidden;
   background-color: black;
   color: #fff;
@@ -297,11 +314,12 @@ html, body
 
 
 #previousID .tooltiptext {
-  width: 100px;
+  width: 150px;
   top: 100%;
   left: 0%;
   /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
     
+  white-space: normal;
   visibility: hidden;
   background-color: black;
   color: #fff;
@@ -315,11 +333,12 @@ html, body
 }
 
 #showInfoIcon .tooltiptext {
-  width: 100px;
+  width: 80px;
   top: 100%;
   left: 40%;
   /*margin-left: -60px;*/ /* Use half of the width (120/2 = 60), to center the tooltip */
     
+  white-space: normal;
   visibility: hidden;
   background-color: black;
   color: #fff;

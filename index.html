@@ -12,32 +12,32 @@
 
 <body>
     <a href="javascript:void(0);" class="icon" onclick="showSidebar()">
-        <i id="showSidebarIcon" style="font-size:24px; position:absolute; top: 0; left: 0; padding: 5px; opacity: 0; z-index: -1; color: black;" class="fa">&#xf0c9;
+        <i id="showSidebarIcon" style="font-size:40px; position:absolute; top: 0; left: 0; padding: 5px; opacity: 0; z-index: -1; color: black;" class="fa">&#xf0c9;
             <span class="tooltiptext">Show Sidebar</span>
         </i>
     </a>
     <a href="javascript:void(0);" class="icon" onclick="toggleFullscreen()">
-        <i id="toggleFullscreen" style="font-size:24px; position:absolute; top: 0; right: 0; padding: 5px; opacity: 1; z-index: 5; color: black;" class="fa fa-expand">
+        <i id="toggleFullscreen" style="font-size:40px; position:absolute; top: 0; right: 0; padding: 5px; opacity: 1; z-index: 5; color: black;" class="fa fa-expand">
             <span class="tooltiptext">Toggle Fullscreen</span>
         </i>
     </a>
     <div id="main_view" style="position: absolute; top: 0; left: 0%; overflow: hidden; width: 100%; height: 100%;">
         <div id="project_name"></div>
-        <div id="sidebar"  style="position: absolute; touch-action: manipulation; top: 0; left: 0; width: 200px; height: 100%; background: rgba(195, 195, 195, 0.5); z-index: 5;">
-        <div id="sidebar_menu"  style="position: absolute; top: 0; left: 0%; overflow: none; width: 100%; height: 35px; background: rgba(63, 63, 63, 0.75); z-index: 6;">
+        <div id="sidebar"  style="position: absolute; touch-action: manipulation; top: 0; left: 0; width: 300px; height: 100%; background: rgba(195, 195, 195, 0.5); z-index: 5;">
+        <div id="sidebar_menu"  style="position: absolute; top: 0; left: 0%; overflow: none; white-space: nowrap; width: 100%; height: 50px; background: rgba(63, 63, 63, 0.75); z-index: 6;">
             <a href="javascript:void(0);" class="icon" onclick="hideSidebar()">
-                <i id="hideSidebarIcon" style="font-size:24px; float: right; padding: 5px; color: black;" class="fa">&#xf0c9;
+                <i id="hideSidebarIcon" style="font-size:40px; float: right; padding: 5px; color: black;" class="fa">&#xf0c9;
                     <span class="tooltiptext">Hide Sidebar</span>
                 </i>
             </a>
             <a href="javascript:void(0);" class="icon" onclick="refreshSite()">
-                <i id="refreshSiteIcon" style="font-size:24px; float: right; padding: 5px; color: black;" class="fa fa-repeat">
+                <i id="refreshSiteIcon" style="font-size:40px; float: right; padding: 5px; color: black;" class="fa fa-repeat">
                     <span class="tooltiptext">Refresh</span>
                 </i>
             </a>
 
             <a href="javascript:void(0);" class="icon" onclick="showInfo()">
-                <i id="showInfoIcon" style="font-size:24px; float: right; padding: 5px; color: black;" class="fa fa-info-circle">
+                <i id="showInfoIcon" style="font-size:40px; float: right; padding: 5px; color: black;" class="fa fa-info-circle">
                     <span class="tooltiptext">Info</span>
                     
                 </i>
@@ -47,18 +47,18 @@
 
 
             <a href="javascript:void(0);" class="icon" onclick="previousID()">
-                <i id="previousID" style="font-size:24px; float: left; padding: 5px; color: black;" class="fa fa-angle-left">
+                <i id="previousID" style="font-size:40px; float: left; padding: 5px; color: black;" class="fa fa-angle-left">
                     <span class="tooltiptext">Previous</span>
                 </i>
             </a>
-            <div id="Queue" style="font-size:24px; float: left; padding: 5px; color: black;">0 / 0</div>
+            <div id="Queue" style="font-size:40px; color: black; vertical-align: middle;">0 / 0</div>
             <a href="javascript:void(0);" class="icon" onclick="nextID()">
-                <i id="nextID" style="font-size:24px; float: left; padding: 5px; color: black;" class="fa fa-angle-right">
+                <i id="nextID" style="font-size:40px; float: left; padding: 5px; color: black;" class="fa fa-angle-right">
                     <span class="tooltiptext">Next</span>
                 </i>
             </a>
         </div>
-        <div id="sidebar_layers" style="position: absolute; top: 35px; left: 0%; overflow-y: auto; overflow-x: hidden; direction: rtl; scrollbar-width: thin; width: 100%; height: calc(100% - 35px); background: rgba(127, 127, 127, 0.5); z-index: 5;"></div>
+        <div id="sidebar_layers" style="position: absolute; top: 50px; left: 0%; overflow-y: auto; overflow-x: hidden; direction: rtl; scrollbar-width: thin; width: 100%; height: calc(100% - 35px); background: rgba(127, 127, 127, 0.5); z-index: 5;"></div>
         </div>
         <div id="loader" z-index=2 style="position: absolute; visibility: hidden;">
             <span id="loading_text" style="position: absolute; top: -50px;">Loading</span>
