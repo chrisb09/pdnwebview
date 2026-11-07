@@ -1,0 +1,3 @@
+[submodule "lib/Canvas2DtoWebGL"]
+	path = lib/Canvas2DtoWebGL
+	url = https://github.com/jagenjo/Canvas2DtoWebGL.git

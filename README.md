@@ -1,51 +1,180 @@
-# Show [paint.net](https://getpaint.net/) projects in a browser.
+# pdnwebview
 
-This project renders the output of [pdnexport](https://gitlab.com/christianbrinkmann/pdnexport) python script in a browser.
+Show [Paint.NET](https://www.getpaint.net/) `.pdn` project files in a browser.
 
-## Installation
+pdnwebview is a **static** viewer: plain HTML/CSS/JavaScript with WebGL canvas
+rendering. It has **no upload form, no API and no server-side processing at
+runtime**. Files are converted ahead of time by the offline
+[`pdnexport` CLI](https://gitlab.com/christianbrinkmann/pdnexport) into a plain
+folder structure under `data/`, and this repo renders those folders.
 
-1. Clone pdnexport repo
-2. Export one or multiple .pdn project files using pdnexport to a path available on web (somewhere like /var/www/paint/data if you're running a linux based server)
-3. Clone this repository to the folder containing the exported data directory (like /var/www/paint)
-   Example:
-```bash
-root@cloud:~# ls /var/www/christian-f-brinkmann/paint/ -l
-insgesamt 116
-drwxr-xr-x 82 cloud cloud  4096 19. Feb 00:35 data
--rw-r--r--  1 root  root  57158 28. Aug 2022  drawCanvas.js
--rw-r--r--  1 root  root   4434 26. Aug 2022  index.html
-drwxr-xr-x  4 root  root   4096 21. Aug 2022  lib
--rw-r--r--  1 root  root   1079 21. Aug 2022  LICENSE.md
--rw-r--r--  1 cloud cloud  1298 26. Aug 2022  loading_bar.css
-drwxr-xr-x  2 root  root   4096 23. Aug 2022  old
-drwxr-xr-x  2 root  root   4096 21. Aug 2022  python
--rw-r--r--  1 root  root   1434 21. Aug 2022  README.md
-drwxr-xr-x  2 root  root   4096 21. Aug 2022  res
-drwxr-xr-x  2 root  root   4096 21. Aug 2022  screenshots
--rw-r--r--  1 cloud cloud  6665 26. Aug 2022  style.css
--rw-r--r--  1 root  root    155 23. Aug 2022  webgl.html
--rw-r--r--  1 root  root     85 23. Aug 2022  webgl.js
+Live demo: <https://christian-f-brinkmann.de/paint/?id=testimage>
+
+![Screenshot](screenshots/example.png)
+
+## How it works
+
+```text
+artwork.pdn  --pdnexport-->  data/artwork/  --static files-->  pdnwebview (browser)
+                             info.json, status.txt, full.png,
+                             <n>.png / .json / .blob / _b.png / _thumbnail.png
 ```
 
-## Usage
+A project is addressed by URL query parameters: one `id` per project folder
+name.
 
-Specify the name(s) of the files you want to show in the path using `?id=abcd&id=cdef` (replace `abcd` and `cdef` with actual project file names).
+## Requirements
 
-So in our example, if your domain were `example.com` then you should open
-`example.com/paint/?id=abcd&id=cdef`
+- git
+- Python 3 (only for exporting and for the local preview server)
+- a modern browser with WebGL
+- Paint.NET on Windows to create `.pdn` files
 
-## Demo
+## Setup
 
-It looks something like this:
+Clone the viewer **with submodules** (`lib/Canvas2DtoWebGL`, the WebGL canvas
+emulation, is a pinned git submodule):
 
-![Large screenshot of the program](screenshots/example.png)
+```bash
+git clone --recurse-submodules https://github.com/chrisb09/pdnwebview.git
+cd pdnwebview
+```
 
-A screenshot might be nice, but there's nothing better than just trying it out yourself at my [website](https://christian-f-brinkmann.de/paint/?id=Zaubertrank%20logo&id=testimage&id=singlecolor&id=Windows%20Mac%20Linux%20Logo%202025).
+Already cloned without submodules?
+
+```bash
+git submodule update --init --recursive
+```
+
+Clone and set up the exporter:
+
+```bash
+git clone https://gitlab.com/christianbrinkmann/pdnexport.git ../pdnexport
+python3 -m venv ../pdnexport/.venv
+../pdnexport/.venv/bin/pip install -r ../pdnexport/requirements.txt
+```
+
+On Windows use `py -m venv .venv` and `.venv\Scripts\pip install -r requirements.txt`.
+
+## Export projects
+
+Export one file (creates `data/<file-stem>/`):
+
+```bash
+../pdnexport/.venv/bin/python ../pdnexport/pdnexport.py artwork.pdn data
+```
+
+Export every `.pdn` in a folder, recursively:
+
+```bash
+../pdnexport/.venv/bin/python ../pdnexport/pdnexport.py ~/paint-projects data --folder
+```
+
+The viewer **ID** of a project is its output folder name — the source file
+name without `.pdn`. IDs are case-sensitive and must be URL-encoded in links
+(spaces become `%20`).
+
+## Preview locally
+
+```bash
+python3 -m http.server 8000
+```
+
+Then open:
+
+```text
+http://localhost:8000/?id=artwork
+http://localhost:8000/?id=artwork&id=logo     # queue of several projects
+```
+
+Opening without `id` shows an alert explaining the expected URL.
+
+## Controls
+
+- sidebar: layer list with thumbnails; click a layer to toggle its visibility
+- `<` / `>`: previous/next project in the `id` queue
+- mouse wheel / drag / pinch: zoom and pan
+- top-right icon: fullscreen
+- info panel: file metadata and a link to the flattened `full.png`
 
 ## Embedding
 
-It is possible to embed the webview into another website like this:
+```html
+<iframe src="https://example.com/paint/?id=artwork"
+        title="Paint.NET project"
+        style="width:1280px;height:720px;border:0;overscroll-behavior:contain"
+        allowfullscreen></iframe>
 ```
-<iframe id="pdnview" src="https://christian-f-brinkmann.de/paint/?id=Zaubertrank%20logo&id=testimage" title="Paint.net projects"
-		style='width: 1280px; height: 720px; border: none; overscroll-behavior: contain ;' allowfullscreen></iframe> 
+
+## Deployment
+
+Any static file server works (nginx, Apache, Caddy, `python3 -m http.server`,
+GitHub Pages, ...). Copy the repo contents **and** the `data/` folder to the
+web root:
+
+```text
+/var/www/paint/
+  index.html
+  drawCanvas.js
+  style.css
+  loading_bar.css
+  lib/...
+  res/...
+  data/<project-id>/...
 ```
+
+There is no Python or Node runtime in production. If `data/` is served from
+another origin it needs CORS headers, because the viewer fetches the files
+from JavaScript.
+
+Example nginx location:
+
+```nginx
+location /paint/ {
+    alias /var/www/paint/;
+    try_files $uri $uri/ =404;
+}
+```
+
+## Data layout
+
+For each exported project `data/<id>/`:
+
+| file | purpose |
+|---|---|
+| `info.json` | canvas size, timestamps, exporter version |
+| `status.txt` | `0` while exporting, layer count when done |
+| `version.txt` | exporter version that produced the folder |
+| `hash.txt` | MD5 of the source `.pdn` (cache key) |
+| `full.png` | flattened preview |
+| `<n>.png` | layer image |
+| `<n>.json` | layer name, visibility, opacity, blend mode, center of mass, bounding box |
+| `<n>.blob` | packed 1-bit opacity map for click hit-testing |
+| `<n>_b.png` | border/outline overlay |
+| `<n>_thumbnail.png` | sidebar thumbnail |
+
+Re-exporting the same `.pdn` is skipped when `hash.txt` + `version.txt` match
+and the previous export finished; delete the folder to force a rebuild.
+
+## Troubleshooting
+
+| symptom | cause / fix |
+|---|---|
+| 404 for `lib/Canvas2DtoWebGL/...`, blank canvas | submodule missing — run `git submodule update --init --recursive` |
+| `AttributeError: ... ANTIALIAS` during export | old exporter with Pillow ≥ 10 — use pdnexport 1.0.10+ |
+| pip error about `shutil` / `hashlib` etc. | old `requirements.txt` — use pdnexport 1.0.10+ |
+| alert “No project names via the id parameter” | add `?id=<folder>` |
+| 404 for `data/<id>/info.json` | wrong ID, case mismatch, or project not exported |
+| large projects take minutes / lots of RAM | the exporter loops per pixel in Python; expected |
+| layers render in normal blend mode | blend modes are stored but not reproduced |
+
+## Limitations
+
+- read-only — no editing
+- blend modes are not reproduced (all layers render “normal”)
+- only `.pdn` files supported by PyPdn
+- no animation support
+
+## License
+
+MIT — see [LICENSE.md](LICENSE.md).
